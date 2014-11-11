@@ -101,6 +101,19 @@ class BannerController extends ActionController {
 	 */
 	public function clickAction(\DERHANSEN\SfBanners\Domain\Model\Banner $banner) {
 		$banner->increaseClicks();
+		
+		// Check whether the banner has reached its click notification limit
+		$clicksNotify = $banner->getClicksNotify();
+		if($clicksNotify > 0) {
+			if($banner->getClicks() >= $clicksNotify) {
+				if($this->sendNotificationEmail($banner, 'clicks', $clicksNotify)) {
+					$banner->setClicksNotify(0);
+					$this->bannerRepository->update($banner);
+				}
+			}
+		}
+		
+		
 		$this->bannerRepository->update($banner);
 		$this->redirectToURI($banner->getLinkUrl());
 	}
@@ -161,6 +174,19 @@ class BannerController extends ActionController {
 
 			/* Update Impressions */
 			$this->bannerRepository->updateImpressions($banners);
+			
+			foreach($banners as $banner) {
+				// Check whether the banner has reached its impressions notification limit		
+				$impressionsNotify = $banner->getImpressionsNotify();
+				if($impressionsNotify > 0) {
+					if($banner->getImpressions() >= $impressionsNotify) {
+						if($this->sendNotificationEmail($banner, 'impressions', $impressionsNotify)) {
+							$banner->setImpressionsNotify(0);
+							$this->bannerRepository->update($banner);
+						};
+					}
+				}
+			}
 
 			/* Collect identifier based on uids for all banners */
 			$ident = $GLOBALS['TSFE']->id . $GLOBALS['TSFE']->sys_language_uid;
@@ -183,5 +209,47 @@ class BannerController extends ActionController {
 		}
 		return $ret;
 	}
+	
+	
+	
+	/**
+	* @param object $banner
+	* @param int $limitName
+	* @return boolean TRUE on success, otherwise false
+	*/
+	protected function sendNotificationEmail($banner, $limitName, $limit) {
+		$templateName = 'NotificationEmail';
+		
+		/** @var \TYPO3\CMS\Fluid\View\StandaloneView $emailView */
+		$emailView = $this->objectManager->get('TYPO3\\CMS\\Fluid\\View\\StandaloneView');
+
+		$extbaseFrameworkConfiguration = $this->configurationManager->getConfiguration(\TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_FRAMEWORK);
+		$templateRootPath = \TYPO3\CMS\Core\Utility\GeneralUtility::getFileAbsFileName($extbaseFrameworkConfiguration['view']['templateRootPath']);
+		$templatePathAndFilename = $templateRootPath . 'Email/' . $templateName . '.html';
+		$emailView->setTemplatePathAndFilename($templatePathAndFilename);
+		$emailView->assign('limitName', $limitName);
+		$emailView->assign('limit', $limit);
+		$emailView->assign('banner', $banner);
+		$emailBody = $emailView->render();
+
+		/** @var $message \TYPO3\CMS\Core\Mail\MailMessage */
+		$message = $this->objectManager->get('TYPO3\\CMS\\Core\\Mail\\MailMessage');
+		
+		$sender = array($this->settings['notification']['sender']['email'] => $this->settings['notification']['sender']['name']);
+		$recipient = array($this->settings['notification']['recipient']['email'] => $this->settings['notification']['recipient']['name']);
+		
+		$message
+			->setSubject($this->settings['notification']['subject'])
+			->setFrom($sender)
+			->setTo($recipient)
+		;
+
+		// Plain text example
+		$message->setBody($emailBody, 'text/plain');
+
+		$message->send();
+		return $message->isSent();
+	}
+	
 
 }

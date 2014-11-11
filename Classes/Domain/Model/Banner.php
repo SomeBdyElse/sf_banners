@@ -143,11 +143,25 @@ class Banner extends AbstractEntity {
 	protected $flashHeight;
 
 	/**
+	 * Impressions notification limit
+	 *
+	 * @var integer
+	 */
+	protected $impressionsNotify;
+
+	/**
 	 * Max impressions
 	 *
 	 * @var integer
 	 */
 	protected $impressionsMax;
+
+	/**
+	 * Clicks notification limit
+	 *
+	 * @var integer
+	 */
+	protected $clicksNotify;
 
 	/**
 	 * Max clicks
@@ -349,6 +363,25 @@ class Banner extends AbstractEntity {
 	}
 
 	/**
+	 * Setter for clicks notification limit
+	 *
+	 * @param int $clicksNotify
+	 * @return void
+	 */
+	public function setClicksNotify ($clicksNotify) {
+		$this->clicksNotify = $clicksNotify;
+	}
+
+	/**
+	 * Getter for clicks notification limit
+	 *
+	 * @return int
+	 */
+	public function getClicksNotify () {
+		return $this->clicksNotify;
+	}
+
+	/**
 	 * Setter for clicksmax
 	 *
 	 * @param int $clicksMax MaxClicks
@@ -498,6 +531,25 @@ class Banner extends AbstractEntity {
 	 */
 	public function getImpressions () {
 		return $this->impressions;
+	}
+
+	/**
+	 * Setter for impressions notification limit
+	 *
+	 * @param int $impressionsNotify
+	 * @return void
+	 */
+	public function setImpressionsNotify ($impressionsNotify) {
+		$this->impressionsNotify = $impressionsNotify;
+	}
+
+	/**
+	 * Getter for impressions notification limit
+	 *
+	 * @return int
+	 */
+	public function getImpressionsNotify () {
+		return $this->impressionsNotify;
 	}
 
 	/**

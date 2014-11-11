@@ -21,5 +21,17 @@ plugin.tx_sfbanners {
 	  clickPageTypeNum = 9002
 	  # cat=plugin.tx_sfbanners/basic/20; type=int; label=Cache lifetime
 	  cacheLifetime = 3600
+	  
+	  notification {
+	   subject = Banner notification
+	  	recipient {
+			name = 
+			email = 
+		}
+		sender {
+			name = 
+			email = 
+		}
+	  }
 	}
 }
